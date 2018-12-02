@@ -5,7 +5,7 @@ document.body.appendChild(app.view);
 
 const sceneWidth = app.view.width;
 const sceneHeight = app.view.height;
-const resolution = 24;
+const resolution = 60;
 
 let startScene;
 let gameScene;
@@ -38,7 +38,7 @@ function Setup(){
 	// #4 - Labels for the scenes
 
 	// #5 - Create Player
-	player = new Player();
+	player = new Player(0,0,135,90);
 	player.position = new Vector2(5,5);
 
 	// #6 - Create Map
@@ -58,8 +58,8 @@ function GameLoop(){
 	//player.Update();
 
 	// update camera
-	debugger;
 	cam.Update(player);
+	player.direction -= 1;
 	// check if game has ended
 }
 

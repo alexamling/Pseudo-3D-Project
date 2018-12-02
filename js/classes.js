@@ -117,7 +117,9 @@ Camera.prototype.DrawWalls = function(player) {
 		let lastPoint = ray.points[ray.points.length - 1];
 		let distance = (lastPoint.x - player.position.x) * (lastPoint.x - player.position.x);
 		distance += (lastPoint.y - player.position.y) * (lastPoint.y - player.position.y);
-		distance = Math.sqrt(distance) * Math.cos(player.direction);
+		distance = Math.sqrt(distance);
+		//distance *= Math.cos(player.direction * (PI/180));
+		console.log(distance);
 		this.walls[i].height =  this.wallScale / distance;
 		this.walls[i].y = (this.sceneHeight * .5) - (this.walls[i].height/2);
 		//debugger;
@@ -129,24 +131,32 @@ Camera.prototype.DrawWalls = function(player) {
 class Map{
 	constructor(size){
 		this.size = size;
-		this.wallGrid = new Uint8Array(size * size); // array to hold the map values
+		this.wallGrid = []; // array to hold the map values
 		this.Setup(); // set up the walls
 	}
 }
 
 // method for checking the value of the map a given point
 Map.prototype.Inspect = function(ray) {
-	if (point.x % 1 == 0){ // check the spaces on either side horizontally
-		if(this.wallGrid[Math.floor(point.y) * this.size + Math.floor(point.x)] > 0 || this.wallGrid[Math.floor(point.y) * this.size + Math.floor(point.x - 1)] > 0 ){
-			return true;
-		} else {
-			return false;
+	let point = ray.points[ray.points.length - 1];
+	//debugger;
+	//console.log(point.x + " | " + point.y);
+	if (point.x > this.size + 1 || point.y > this.size + 1 || point.x < 0 || point.y < 0){
+		console.log("Defaulted");
+		debugger;
+		return true;
+	}
+	if (point.x % 1 == 0){ // check horizontally
+		if(ray.right){
+			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)] > 0 );
+		}else{
+			return (this.wallGrid[Math.floor(point.x)-1][Math.floor(point.y)] > 0 );
 		}
 	} else { // check the spaces above and below
-		if(this.wallGrid[Math.floor(point.y) * this.size + Math.floor(point.x)] > 0 || this.wallGrid[(Math.floor(point.y - 1)) * this.size + Math.floor(point.x)] > 0 ){
-			return true;
-		} else {
-			return false;
+		if(ray.up){
+			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)] > 0);
+		}else{
+			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)-1] > 0);
 		}
 	}
 };
@@ -170,12 +180,6 @@ class Vector2{
 	}
 }
 
-/*
-	require construction for array loop start:
-	Ray ray = new Ray(angle);
-	ray.points.push(player.position);
-*/
-
 Map.prototype.RayCast = function(ray) {
 	let newPoint;
 
@@ -193,19 +197,29 @@ Map.prototype.RayCast = function(ray) {
 		if(ray.right){
 			DistToX = 1 - (ray.points[ray.points.length-1].x % 1); // get the distance from the last point to the right boundary
 		} else {
-			DistToX = -1 + (ray.points[ray.points.length-1].x % 1); // get the distance from the last point to the left boundary
+			if(ray.points[ray.points.length-1].x % 1 == 0){
+				DistToX = -1;
+			}else{
+				DistToX = -(ray.points[ray.points.length-1].x % 1); // get the distance from the last point to the left boundary
+			}
+			
 		}
 
 		if(ray.up){
 			DistToY = 1 - (ray.points[ray.points.length-1].y % 1); // get the distance from the last point to the top boundary
 		} else {
-			DistToY = -1 + (ray.points[ray.points.length-1].y % 1); // get the distance from the last point to the bottom boundary
+			if(ray.points[ray.points.length-1].y % 1 == 0){
+				DistToY = -1;
+			}else{
+				DistToY = -(ray.points[ray.points.length-1].y % 1); // get the distance from the last point to the bottom boundary
+			}
+			
 		}
 
 		//console.log("Dist: " + DistToX + " | " + DistToY);
 		//console.log("Slope: " + ray.slope);
 
-		if(Math.abs(DistToY) > (Math.abs(DistToX) * ray.slope)){
+		if(Math.abs(DistToY) > Math.abs(DistToX * ray.slope)){
 			// if the horizontal boundary is closer
 			//console.log("horizontal");
 			newPoint.x =  Math.round(ray.points[ray.points.length - 1].x + DistToX);
@@ -223,18 +237,18 @@ Map.prototype.RayCast = function(ray) {
 	} while (!this.Inspect(ray)) // exit loop when the ray hits a wall
 };
 
-Map.prototype.Setup = function(size) {
+Map.prototype.Setup = function() {
 	// populated the map wallGrid
 	// placeholder for randomized/prodecural loading
-	for (let i = 0; i < this.size * this.size; i++) {
-		if (i / this.size == 0 || i / this.size == this.size - 1){
-			this.wallGrid[i] = 1;
+	for (let x = 0; x < this.size; x++){
+		let row = [];
+		for (let y = 0; y < this.size; y++) {
+			if(x == 0 || x == this.size-1 || y == 0 || y == this.size-1){
+				row.push(1);
+			}else{
+				row.push(0);
+			}
 		}
-		else if (i % this.size == 0 || i % this.size == this.size - 1){
-			this.wallGrid[i] = 1;
-		}
-		else{
-			this.wallGrid[i] = 0;
-		}
+		this.wallGrid.push(row);
 	}
 };
