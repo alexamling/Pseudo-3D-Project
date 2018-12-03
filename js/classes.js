@@ -43,22 +43,43 @@ class Player{
 		this.position = new Vector2(x,y);
 		this.direction = direction;
 		this.POV = POV;
+		this.moveSpeed = .025;
+		this.rotSpeed = 1;
 	}
 }
 
 // method to pass the appropirate values to Rotate() and Move() based off of input values
 Player.prototype.Update = function(controls, map, deltaTime) {
-	// call rotate depending on mouse input
-	// call move depending on WASD
+	this.Rotate();
+	this.Move();
 };
 // method to adjust the players direction based off of values passed from Update()
 Player.prototype.Rotate = function(angle) {
-	
+	if(keys[keyboard.LEFT]){
+		this.direction -= this.rotSpeed;
+	}else if(keys[keyboard.RIGHT]){
+		this.direction += this.rotSpeed;
+	}
 };
 
 // method to adjust palyer location based off of values passed from Update()
 Player.prototype.Move = function(distance, map) {
-	// body...
+	
+	// forward/backward
+	if(keys[keyboard.W]){
+		this.position.x += Math.cos(this.direction * (PI/180)) * this.moveSpeed;
+		this.position.y += Math.sin(this.direction * (PI/180)) * this.moveSpeed;
+	}else if(keys[keyboard.S]){
+		this.position.x -= Math.cos(this.direction * (PI/180)) * this.moveSpeed;
+		this.position.y -= Math.sin(this.direction * (PI/180)) * this.moveSpeed;
+	}
+	if(keys[keyboard.A]){
+		this.position.x -= Math.cos((this.direction + 90) * (PI/180)) * this.moveSpeed;
+		this.position.y -= Math.sin((this.direction + 90) * (PI/180)) * this.moveSpeed;
+	}else if(keys[keyboard.D]){
+		this.position.x += Math.cos((this.direction + 90) * (PI/180)) * this.moveSpeed;
+		this.position.y += Math.sin((this.direction + 90) * (PI/180)) * this.moveSpeed;
+	}
 };
 
 // class for the rendering of the scene
@@ -243,7 +264,7 @@ Map.prototype.Setup = function() {
 	for (let x = 0; x < this.size; x++){
 		let row = [];
 		for (let y = 0; y < this.size; y++) {
-			if(x == 0 || x == this.size-1 || y == 0 || y == this.size-1){
+			if(x == 0 || x == this.size-1 || y == 0 || y == this.size-1 || Math.random() < .05){
 				row.push(1);
 			}else{
 				row.push(0);

@@ -5,14 +5,13 @@ document.body.appendChild(app.view);
 
 const sceneWidth = app.view.width;
 const sceneHeight = app.view.height;
-const resolution = 60;
+const resolution = 120;
 
 let startScene;
 let gameScene;
 let gameOverScene;
 
 let player;
-let playerSpeed = .05;
 
 let map;
 let cam;
@@ -57,21 +56,9 @@ function GameLoop(){
 	if (!playing) return;
 
 	// #1 - input
-	// forward/backward
-	if(keys[keyboard.W]){
-		player.position.x += playerSpeed;
-		console.log(player.position.x);
-	}else if(keys[keyboard.S]){
-		player.position.x -= playerSpeed
-	}
-	if(keys[keyboard.A]){
-
-	}else if(keys[keyboard.D]){
-
-	}
 
 	// #2 - update player
-	//player.Update();
+	player.Update();
 
 	// update camera
 	cam.Update(player);
