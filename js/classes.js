@@ -118,8 +118,8 @@ Camera.prototype.DrawWalls = function(player) {
 		let distance = (lastPoint.x - player.position.x) * (lastPoint.x - player.position.x);
 		distance += (lastPoint.y - player.position.y) * (lastPoint.y - player.position.y);
 		distance = Math.sqrt(distance);
-		//distance *= Math.cos(player.direction * (PI/180));
-		console.log(distance);
+		distance *= Math.cos((player.direction - ray.angle) * (PI/180));
+		//console.log(distance);
 		this.walls[i].height =  this.wallScale / distance;
 		this.walls[i].y = (this.sceneHeight * .5) - (this.walls[i].height/2);
 		//debugger;
