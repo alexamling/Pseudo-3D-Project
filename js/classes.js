@@ -91,6 +91,7 @@ class Camera{
 		this.sceneWidth = sceneWidth;
 		this.sceneHeight = sceneHeight;
 		this.wallScale = 250;
+		this.shadowDistance = 15;
 		this.walls = this.GetWalls(sceneWidth, resolution);
 	}
 }
@@ -99,10 +100,15 @@ Camera.prototype.GetWalls = function(sceneWidth, resolution) {
 	let wallWidth = sceneWidth / resolution;
 	let walls = [resolution];
 	for (let i = 0; i < resolution; i++){
+		walls[i] = new PIXI.Sprite.fromImage('images/wall_tile.png');
+		walls[i].width = wallWidth;
+		walls[i].height = 1;
+		/* - old walls
 		walls[i] = new PIXI.Graphics();
 		walls[i].beginFill(0x888888);
 		walls[i].drawRect(0,0,wallWidth,1);
 		walls[i].endFill();
+		*/
 		this.scene.addChild(walls[i]);
 	}
 	return walls;
@@ -140,7 +146,11 @@ Camera.prototype.DrawWalls = function(player) {
 		distance += (lastPoint.y - player.position.y) * (lastPoint.y - player.position.y);
 		distance = Math.sqrt(distance);
 		distance *= Math.cos((player.direction - ray.angle) * (PI/180));
-		//console.log(distance);
+		// change image tint depending on distance, from rbg 200,200,200 to 60,60,60
+		let value = 200 - (distance * this.shadowDistance);
+		this.walls[i].tint = ToHex(value);
+		//console.log(ToHex(value));
+		//debugger;
 		this.walls[i].height =  this.wallScale / distance;
 		this.walls[i].y = (this.sceneHeight * .5) - (this.walls[i].height/2);
 		//debugger;
@@ -273,3 +283,18 @@ Map.prototype.Setup = function() {
 		this.wallGrid.push(row);
 	}
 };
+
+/* referred to: https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb */
+function ToHex(value){
+	let hex;
+	value = Math.floor(value);
+	if(value < 0){
+		hex = "00";
+	} else {
+		hex = value.toString(16);
+		if (hex.length < 2) {
+			hex = "0" + hex;
+		}	
+	}
+	return "0x" + hex + hex + hex;
+}
