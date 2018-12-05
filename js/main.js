@@ -58,7 +58,7 @@ function GameLoop(){
 	// #1 - input
 
 	// #2 - update player
-	player.Update();
+	player.Update(map);
 
 	// update camera
 	cam.Update(player);

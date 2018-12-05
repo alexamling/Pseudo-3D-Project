@@ -45,13 +45,14 @@ class Player{
 		this.POV = POV;
 		this.moveSpeed = .025;
 		this.rotSpeed = 1;
+		this.collisionRadius = .2;
 	}
 }
 
 // method to pass the appropirate values to Rotate() and Move() based off of input values
-Player.prototype.Update = function(controls, map, deltaTime) {
+Player.prototype.Update = function(map) {
 	this.Rotate();
-	this.Move();
+	this.Move(map);
 };
 // method to adjust the players direction based off of values passed from Update()
 Player.prototype.Rotate = function(angle) {
@@ -63,23 +64,39 @@ Player.prototype.Rotate = function(angle) {
 };
 
 // method to adjust palyer location based off of values passed from Update()
-Player.prototype.Move = function(distance, map) {
-	
+Player.prototype.Move = function(map) {
+	let dx = 0;
+	let dy = 0;
 	// forward/backward
 	if(keys[keyboard.W]){
-		this.position.x += Math.cos(this.direction * (PI/180)) * this.moveSpeed;
-		this.position.y += Math.sin(this.direction * (PI/180)) * this.moveSpeed;
-	}else if(keys[keyboard.S]){
-		this.position.x -= Math.cos(this.direction * (PI/180)) * this.moveSpeed;
-		this.position.y -= Math.sin(this.direction * (PI/180)) * this.moveSpeed;
+		// TODO: collisions // if(this.wallGrid[xpos][ypos] > 1)
+		dx += Math.cos(this.direction * (PI/180)) * this.moveSpeed;
+		dy += Math.sin(this.direction * (PI/180)) * this.moveSpeed;
+	}if(keys[keyboard.S]){
+		dx -= Math.cos(this.direction * (PI/180)) * this.moveSpeed;
+		dy -= Math.sin(this.direction * (PI/180)) * this.moveSpeed;
 	}
+	// left/right
 	if(keys[keyboard.A]){
-		this.position.x -= Math.cos((this.direction + 90) * (PI/180)) * this.moveSpeed;
-		this.position.y -= Math.sin((this.direction + 90) * (PI/180)) * this.moveSpeed;
-	}else if(keys[keyboard.D]){
-		this.position.x += Math.cos((this.direction + 90) * (PI/180)) * this.moveSpeed;
-		this.position.y += Math.sin((this.direction + 90) * (PI/180)) * this.moveSpeed;
+		dx -= Math.cos((this.direction + 90) * (PI/180)) * this.moveSpeed;
+		dy -= Math.sin((this.direction + 90) * (PI/180)) * this.moveSpeed;
+	}if(keys[keyboard.D]){
+		dx += Math.cos((this.direction + 90) * (PI/180)) * this.moveSpeed;
+		dy += Math.sin((this.direction + 90) * (PI/180)) * this.moveSpeed;
 	}
+	// check for collisions
+	let xCollisionRadius = (dx > 0) ? this.collisionRadius : -1 * this.collisionRadius;
+	let yCollisionRadius = (dy > 0) ? this.collisionRadius : -1 * this.collisionRadius;
+	if (map.wallGrid[Math.floor(this.position.x + dx + xCollisionRadius)][Math.floor(this.position.y)] > 0){
+		dx = 0;
+	}
+	if (map.wallGrid[Math.floor(this.position.x)][Math.floor(this.position.y + dy + yCollisionRadius)] > 0){
+		dy = 0;
+	}
+
+	// apply movement
+	this.position.x += dx;
+	this.position.y += dy;
 };
 
 // class for the rendering of the scene
