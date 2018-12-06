@@ -4,40 +4,90 @@
 "use strict";
 
 /*
-Project Planning
+-- Table of Contents --
 ____________________________________________________________________________________________________________________
 
-Update(){
-	input
-	Player.Update() -> move | rotate
-	Camera.Update() -> draw the sky | render the walls
-}
+--- # 1 - Player Class ---------------------------------------------------------------------------------------------
+		Constructor(x position, y position, the direction the player is facing, POV)
+			also sets the player movement speed, rotation speed, and collision radius
+		
+		Update(the map to use for movement and collisions)
+			Calls Rotate()
+			Calls Move(passes the map)
 
-Player.Update(){
-	Player.Rotate();
-	Player.Move();
-}
+		Rotate()
+			rotates the player left or right depending on keyboard input
 
-Camera.Update(){
-	draw sky
-	RenderWalls()
-}
+		Move(map)
+			calculates the change in x and y values depending on keyboard input
+			checks each axis to see if those values would cause a collision
+				if they do, change the appropriate value back to 0
+			applies the change
 
-DrawWalls(){
-	subdivide POV depending on players direction, viewport size, and resolution
-	Player.RayCast(vector for the direction of the cast) for each segment of the POV
-	DrawWall(ray from the raycast)
-}
+--- # 2 - Camera Class ---------------------------------------------------------------------------------------------
+		Constructor(the map for the level, the scene for gameplay, the group for laying objects, 
+					the width of the scene, the height of the scene, the desired rendering resolution)
+			also sets the scaling to use for rendering the walls, and the distance scale to use for shading the walls
+			calls GetWalls() to fetch the pool of shapes to use for rendering the walls
+		
+		Getwalls()
+			Creates and returns an array of rectangles to use for rendering the walls
 
-Player.RayCast(){
-	recursively step through the ray, creating a point at each gridline intersection
-	inspect each step returning whe you hit a wall or edge of map
-}
+		Update(player)
+			calls DrawWalls(passes the player)
+			TODO: implement DrawBackground, DrawPickups, and DrawEnemies
+
+		DrawBackground()
+			CURRENTLY UNIMPLMENETED
+
+		DrawWalls(player)
+			goes through each division of the screen 
+			creates a ray for that angle
+			finds player distance from walls with map.Raycast(ray) 
+			adjusts the height shapes in the wall pool to represent the walls
+			adjusts the tint for the shapes using the distance and ToHex()
+
+
+--- # 3 - Vector2 Class --------------------------------------------------------------------------------------------
+		Constructor(x position, y position)
+
+--- # 4 - Ray Class ------------------------------------------------------------------------------------------------
+		Constructor(angle the ray is pointed)
+			holds an array of points along the ray
+			determines it's slope
+			determines it's cardinal directions
+
+--- # 5 - Map Class ------------------------------------------------------------------------------------------------
+		Constructor(size of the map along one wall)
+			uses Setup() to create a 2D array to hold walls
+		
+		Setup()
+			populates the wall array of the map
+			CURRENTLY PLACEHOLDER VALUES
+
+		RayCast(ray to work with)
+			steps through the map, logging every time it passes through a gridline (a potential wall) and checks the position it just hit
+			when it hits a wall, it returns the ray, which now holds every intersection point
+			TODO: return the spaces on the map that hold other things that need to be rendered (ei. enemies and pickups)
+
+		Inspect(ray that is being inspected)
+			looks at the last point in the array and determines if the ray has hit a wall
+			returns true on a collision
+			returns false otherwise
+
+--- # 6 - Helper Functions -----------------------------------------------------------------------------------------
+		
+		ToHex(value to convert to hex) : created with reference to https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb
+			creates a hexidecimal string to use as a color value for tinting
+
 */
 
 const PI = Math.PI;
 
+// # 1 - Player Class ---------------------------------------------------------------------------------------------
+
 // holds the player position and direction
+// parameters: (x position, y position, the direction the player is facing, POV)
 class Player{
 	constructor(x=0,y=0, direction = 0, POV = 90){
 		this.position = new Vector2(x,y);
@@ -54,8 +104,9 @@ Player.prototype.Update = function(map) {
 	this.Rotate();
 	this.Move(map);
 };
+
 // method to adjust the players direction based off of values passed from Update()
-Player.prototype.Rotate = function(angle) {
+Player.prototype.Rotate = function() {
 	if(keys[keyboard.LEFT]){
 		this.direction -= this.rotSpeed;
 	}else if(keys[keyboard.RIGHT]){
@@ -99,7 +150,15 @@ Player.prototype.Move = function(map) {
 	this.position.y += dy;
 };
 
+// End of Player Class ---------------------------------------------------------------------------------------------
+
+
+
+// # 2 - Camera Class ----------------------------------------------------------------------------------------------
+
 // class for the rendering of the scene
+// parameters: (the map for the level, the scene for gameplay, the group for laying objects, 
+//		the width of the scene, the height of the scene, the desired rendering resolution)
 class Camera{
 	constructor(map, scene, group, sceneWidth, sceneHeight, resolution){
 		this.map = map;
@@ -114,10 +173,10 @@ class Camera{
 	}
 }
 
-Camera.prototype.GetWalls = function(sceneWidth, resolution) {
-	let wallWidth = sceneWidth / resolution;
-	let walls = [resolution];
-	for (let i = 0; i < resolution; i++){
+Camera.prototype.GetWalls = function() {
+	let wallWidth = this.sceneWidth / this.resolution;
+	let walls = [this.resolution];
+	for (let i = 0; i < this.resolution; i++){
 		walls[i] = new PIXI.Sprite.fromImage('images/wall_tile.png');
 		walls[i].width = wallWidth;
 		walls[i].height = 1;
@@ -162,48 +221,32 @@ Camera.prototype.DrawWalls = function(player) {
 		distance *= Math.cos((player.direction - ray.angle) * (PI/180));
 		// change image tint depending on distance
 		let value = 200 - (distance * this.shadowDistance);
+		this.walls[i].tint = ToHex(value);
 		// change z-order depending on distance
 		this.walls[i].zOrder = distance;
-		//debugger;
-		this.walls[i].tint = ToHex(value);
 		this.walls[i].height =  this.wallScale / distance;
 		this.walls[i].y = (this.sceneHeight * .5) - (this.walls[i].height/2);
 	}
 };
 
-// class for the state info of the scene and raycasting through the scene
-class Map{
-	constructor(size){
-		this.size = size;
-		this.wallGrid = []; // array to hold the map values
-		this.Setup(); // set up the walls
+// End of Camera Class ---------------------------------------------------------------------------------------------
+
+
+
+// # 3 - Vector2 Class ---------------------------------------------------------------------------------------------
+
+class Vector2{
+	constructor(x,y){
+		this.x = x;
+		this.y = y;
 	}
 }
 
-// method for checking the value of the map a given point
-Map.prototype.Inspect = function(ray) {
-	let point = ray.points[ray.points.length - 1];
-	//debugger;
-	//console.log(point.x + " | " + point.y);
-	if (point.x > this.size + 1 || point.y > this.size + 1 || point.x < 0 || point.y < 0){
-		console.log("Defaulted");
-		debugger;
-		return true;
-	}
-	if (point.x % 1 == 0){ // check horizontally
-		if(ray.right){
-			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)] > 0 );
-		}else{
-			return (this.wallGrid[Math.floor(point.x)-1][Math.floor(point.y)] > 0 );
-		}
-	} else { // check the spaces above and below
-		if(ray.up){
-			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)] > 0);
-		}else{
-			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)-1] > 0);
-		}
-	}
-};
+// End of Vector2 Class --------------------------------------------------------------------------------------------
+
+
+
+// # 4 - Ray Class -------------------------------------------------------------------------------------------------
 
 class Ray{
 	constructor(angle){
@@ -217,12 +260,36 @@ class Ray{
 	}
 }
 
-class Vector2{
-	constructor(x,y){
-		this.x = x;
-		this.y = y;
+// End of Ray Class ------------------------------------------------------------------------------------------------
+
+
+
+// # 5 - Map Class -------------------------------------------------------------------------------------------------
+
+// class for the state info of the scene and raycasting through the scene
+class Map{
+	constructor(size){
+		this.size = size;
+		this.wallGrid = []; // array to hold the map values
+		this.Setup(); // set up the walls
 	}
 }
+
+Map.prototype.Setup = function() {
+	// populated the map wallGrid
+	// placeholder for randomized/prodecural loading
+	for (let x = 0; x < this.size; x++){
+		let row = [];
+		for (let y = 0; y < this.size; y++) {
+			if(x == 0 || x == this.size-1 || y == 0 || y == this.size-1 || Math.random() < .05){
+				row.push(1);
+			}else{
+				row.push(0);
+			}
+		}
+		this.wallGrid.push(row);
+	}
+};
 
 Map.prototype.RayCast = function(ray) {
 	let newPoint;
@@ -234,8 +301,6 @@ Map.prototype.RayCast = function(ray) {
 		// determine which axis the ray will hit next
 		let DistToX = 0;
 		let DistToY = 0;
-
-		//console.log("rev Point: " + ray.points[ray.points.length-1].x + " | " + ray.points[ray.points.length-1].y);
 
 
 		if(ray.right){
@@ -260,42 +325,50 @@ Map.prototype.RayCast = function(ray) {
 			
 		}
 
-		//console.log("Dist: " + DistToX + " | " + DistToY);
-		//console.log("Slope: " + ray.slope);
-
 		if(Math.abs(DistToY) > Math.abs(DistToX * ray.slope)){
 			// if the horizontal boundary is closer
-			//console.log("horizontal");
 			newPoint.x =  Math.round(ray.points[ray.points.length - 1].x + DistToX);
 			newPoint.y = ray.points[ray.points.length - 1].y + (DistToX * ray.slope);
 		} else {
 			// if the vertical boundary is closer
-			//console.log("vertical");
 			newPoint.x =  ray.points[ray.points.length - 1].x + (DistToY / ray.slope);
 			newPoint.y = Math.round(ray.points[ray.points.length - 1].y + DistToY);
 		}
-		//debugger;
+
 		// add point to ray
 		ray.points.push(newPoint);
 
 	} while (!this.Inspect(ray)) // exit loop when the ray hits a wall
 };
 
-Map.prototype.Setup = function() {
-	// populated the map wallGrid
-	// placeholder for randomized/prodecural loading
-	for (let x = 0; x < this.size; x++){
-		let row = [];
-		for (let y = 0; y < this.size; y++) {
-			if(x == 0 || x == this.size-1 || y == 0 || y == this.size-1 || Math.random() < .05){
-				row.push(1);
-			}else{
-				row.push(0);
-			}
+// method for checking the value of the map a given point
+Map.prototype.Inspect = function(ray) {
+	let point = ray.points[ray.points.length - 1];
+	if (point.x > this.size + 1 || point.y > this.size + 1 || point.x < 0 || point.y < 0){
+		console.log("Defaulted");
+		debugger;
+		return true;
+	}
+	if (point.x % 1 == 0){ // check horizontally
+		if(ray.right){
+			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)] > 0 );
+		}else{
+			return (this.wallGrid[Math.floor(point.x)-1][Math.floor(point.y)] > 0 );
 		}
-		this.wallGrid.push(row);
+	} else { // check the spaces above and below
+		if(ray.up){
+			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)] > 0);
+		}else{
+			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)-1] > 0);
+		}
 	}
 };
+
+// End of Map Class ------------------------------------------------------------------------------------------------
+
+
+
+// # 6 - Helper Functions ------------------------------------------------------------------------------------------
 
 /* referred to: https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb */
 function ToHex(value){
@@ -311,3 +384,5 @@ function ToHex(value){
 	}
 	return "0x" + hex + hex + hex;
 }
+
+// End of Helper Functions -----------------------------------------------------------------------------------------

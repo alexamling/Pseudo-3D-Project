@@ -1,3 +1,5 @@
+// code from class-provided example
+// important keycodes
 const keyboard = Object.freeze({
 	SHIFT: 16,
 	SPACE: 32,
