@@ -44,8 +44,8 @@ class Player{
 		this.direction = direction;
 		this.POV = POV;
 		this.moveSpeed = .025;
-		this.rotSpeed = 1;
-		this.collisionRadius = .2;
+		this.rotSpeed = 2;
+		this.collisionRadius = .25;
 	}
 }
 
@@ -101,9 +101,10 @@ Player.prototype.Move = function(map) {
 
 // class for the rendering of the scene
 class Camera{
-	constructor(map, scene, sceneWidth, sceneHeight, resolution){
+	constructor(map, scene, group, sceneWidth, sceneHeight, resolution){
 		this.map = map;
 		this.scene = scene;
+		this.group = group;
 		this.resolution = resolution;
 		this.sceneWidth = sceneWidth;
 		this.sceneHeight = sceneHeight;
@@ -120,13 +121,9 @@ Camera.prototype.GetWalls = function(sceneWidth, resolution) {
 		walls[i] = new PIXI.Sprite.fromImage('images/wall_tile.png');
 		walls[i].width = wallWidth;
 		walls[i].height = 1;
-		/* - old walls
-		walls[i] = new PIXI.Graphics();
-		walls[i].beginFill(0x888888);
-		walls[i].drawRect(0,0,wallWidth,1);
-		walls[i].endFill();
-		*/
+		//walls[i].anchor.set(0.5);
 		this.scene.addChild(walls[i]);
+		walls[i].parentGroup = this.group;
 	}
 	return walls;
 };
@@ -163,16 +160,15 @@ Camera.prototype.DrawWalls = function(player) {
 		distance += (lastPoint.y - player.position.y) * (lastPoint.y - player.position.y);
 		distance = Math.sqrt(distance);
 		distance *= Math.cos((player.direction - ray.angle) * (PI/180));
-		// change image tint depending on distance, from rbg 200,200,200 to 60,60,60
+		// change image tint depending on distance
 		let value = 200 - (distance * this.shadowDistance);
-		this.walls[i].tint = ToHex(value);
-		//console.log(ToHex(value));
+		// change z-order depending on distance
+		this.walls[i].zOrder = distance;
 		//debugger;
+		this.walls[i].tint = ToHex(value);
 		this.walls[i].height =  this.wallScale / distance;
 		this.walls[i].y = (this.sceneHeight * .5) - (this.walls[i].height/2);
-		//debugger;
 	}
-	//debugger;
 };
 
 // class for the state info of the scene and raycasting through the scene
