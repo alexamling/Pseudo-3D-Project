@@ -79,13 +79,14 @@ function Setup(){
 
 
 	// #00 - testing section
+	/*
 	circle = new PIXI.Graphics();
 	circle.beginFill(0xff0000);
 	circle.drawCircle(sceneWidth/2,sceneHeight/2,30);
 	circle.endFill();
 	circle.zOrder = 1;
 	circle.parentGroup = gameGroup;
-	gameScene.addChild(circle);
+	gameScene.addChild(circle);*/
 }
 
 function GameLoop(){

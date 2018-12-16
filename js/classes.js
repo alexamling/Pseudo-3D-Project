@@ -75,7 +75,11 @@ ________________________________________________________________________________
 			returns true on a collision
 			returns false otherwise
 
---- # 6 - Helper Functions -----------------------------------------------------------------------------------------
+--- # 6 - Pickup Class  -------------------------------------------------------------------------------------------
+		
+		
+
+--- # 7 - Helper Functions -----------------------------------------------------------------------------------------
 		
 		ToHex(value to convert to hex) : created with reference to https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb
 			creates a hexidecimal string to use as a color value for tinting
@@ -111,6 +115,13 @@ Player.prototype.Rotate = function() {
 		this.direction -= this.rotSpeed;
 	}else if(keys[keyboard.RIGHT]){
 		this.direction += this.rotSpeed;
+	}
+
+	if (this.direction > 180){
+		this.direction -= 360;
+	}
+	if (this.direction < -180){
+		this.direction += 360;
 	}
 };
 
@@ -168,8 +179,10 @@ class Camera{
 		this.sceneWidth = sceneWidth;
 		this.sceneHeight = sceneHeight;
 		this.wallScale = 250;
+		this.pickUpScale = 75;
 		this.shadowDistance = 15;
 		this.walls = this.GetWalls(sceneWidth, resolution);
+		this.pickUpPool = this.GetPickUps();
 	}
 }
 
@@ -180,17 +193,32 @@ Camera.prototype.GetWalls = function() {
 		walls[i] = new PIXI.Sprite.fromImage('images/wall_tile.png');
 		walls[i].width = wallWidth;
 		walls[i].height = 1;
-		//walls[i].anchor.set(0.5);
 		this.scene.addChild(walls[i]);
 		walls[i].parentGroup = this.group;
 	}
 	return walls;
 };
 
+Camera.prototype.GetPickUps = function() {
+	let pickUpPool = [map.pickUps.length];
+	for (let i = 0; i < map.pickUps.length; i++){
+		/*pickUpPool[i] = new PIXI.Sprite.fromImage();
+		pickUpPool[i] = new PIXI.Graphics();
+		pickUpPool[i].beginFill(0xff0000);
+		pickUpPool[i].drawCircle(sceneWidth/2,sceneHeight/2,10);
+		pickUpPool[i].endFill();
+		this.scene.addChild(pickUpPool[i]);
+		pickUpPool[i].parentGroup = this.group;*/
+		pickUpPool[i] = new PickUp(map.pickUps[i].x, map.pickUps[i].y, this.scene, this.group);
+	}
+	return pickUpPool;
+};
+
 Camera.prototype.Update = function(player) {
 	// draw background
 	// draw walls
 	this.DrawWalls(player);
+	this.DrawPickUps(player);
 };
 
 // method to handle drawing the background (floor and/or sky)
@@ -226,6 +254,41 @@ Camera.prototype.DrawWalls = function(player) {
 		this.walls[i].zOrder = distance;
 		this.walls[i].height =  this.wallScale / distance;
 		this.walls[i].y = (this.sceneHeight * .5) - (this.walls[i].height/2);
+	}
+};
+
+Camera.prototype.DrawPickUps = function(player) {
+	for (let i = 0; i < this.pickUpPool.length; i++){
+		// culling the pickups that are out of the player's view
+		let angle = Math.atan2(this.pickUpPool[i].y - player.position.y, this.pickUpPool[i].x - player.position.x) * 180/PI
+		if (angle > player.direction + (player.POV * .5)){
+			this.pickUpPool[i].sprite.x = -1000; // move the shape off screen
+		debugger;
+			continue;
+		}
+		if (angle + (player.POV * .5) < player.direction){
+			this.pickUpPool[i].sprite.x = -1000; // move the shape off screen
+		debugger;
+			continue;
+		}
+
+		// calculate distance from player
+		let distance = (this.pickUpPool[i].x - player.position.x) * (this.pickUpPool[i].x - player.position.x);
+		distance += (this.pickUpPool[i].y - player.position.y) * (this.pickUpPool[i].y - player.position.y);
+		distance = Math.sqrt(distance);
+		distance *= Math.cos((player.direction - angle) * (PI/180));
+
+		// change image tint depending on distance
+		let value = 200 - ((distance * this.shadowDistance)*.5);
+		//this.pickUpPool[i].sprite.tint = ToHex(value);
+
+		// change z-order depending on distance
+		this.pickUpPool[i].zOrder = distance;
+
+		this.pickUpPool[i].sprite.height =  this.pickUpScale / distance;
+		this.pickUpPool[i].sprite.width =  this.pickUpScale / distance;
+		this.pickUpPool[i].sprite.x = ((this.sceneWidth / 2) + ((this.sceneWidth / 2) * (angle - player.direction)/(player.POV * .5)) - this.pickUpPool[i].sprite.width/2);
+		this.pickUpPool[i].sprite.y = (this.sceneHeight * .5) - (this.pickUpPool[i].sprite.height/2);
 	}
 };
 
@@ -271,7 +334,8 @@ class Map{
 	constructor(size){
 		this.size = size;
 		this.wallGrid = []; // array to hold the map values
-		this.Setup(); // set up the walls
+		this.pickUps = []; // array to hold pickup objects
+		this.Setup(); // set up the walls and pickups
 	}
 }
 
@@ -283,6 +347,10 @@ Map.prototype.Setup = function() {
 		for (let y = 0; y < this.size; y++) {
 			if(x == 0 || x == this.size-1 || y == 0 || y == this.size-1 || Math.random() < .05){
 				row.push(1);
+			}else if (Math.random() < .05){
+				debugger;
+				row.push(-1); // mark this spot on the grid
+				this.pickUps.push(new Vector2(x,y)); // pass the location to the pickup arr
 			}else{
 				row.push(0);
 			}
@@ -344,11 +412,13 @@ Map.prototype.RayCast = function(ray) {
 // method for checking the value of the map a given point
 Map.prototype.Inspect = function(ray) {
 	let point = ray.points[ray.points.length - 1];
+	// exit loop if ray has left the bounds of the scene
 	if (point.x > this.size + 1 || point.y > this.size + 1 || point.x < 0 || point.y < 0){
 		console.log("Defaulted");
 		debugger;
 		return true;
 	}
+
 	if (point.x % 1 == 0){ // check horizontally
 		if(ray.right){
 			return (this.wallGrid[Math.floor(point.x)][Math.floor(point.y)] > 0 );
@@ -368,7 +438,30 @@ Map.prototype.Inspect = function(ray) {
 
 
 
-// # 6 - Helper Functions ------------------------------------------------------------------------------------------
+// # 6 - Pickup Class ----------------------------------------------------------------------------------------------
+class PickUp{
+	constructor(x,y, scene, group){
+		this.x = x;
+		this.y = y;
+		this.sprite = new PIXI.Sprite.fromImage('images/pickup.png');
+		/*this.sprite = new PIXI.Graphics();
+		this.sprite.beginFill(0x0000ff);
+		this.sprite.drawRect(sceneWidth/2,sceneHeight/2,10,10);
+		this.sprite.endFill();*/
+		this.sprite.x = sceneWidth/2;
+		this.sprite.y = sceneHeight/2;
+		this.sprite.width = 10;
+		this.sprite.height = 10;
+		scene.addChild(this.sprite);
+		this.sprite.parentGroup = group;
+	}
+}
+
+// End of Pickup class --------------------------------------------------------------------------------------------
+
+
+
+// # 7 - Helper Functions ------------------------------------------------------------------------------------------
 
 /* referred to: https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb */
 function ToHex(value){
