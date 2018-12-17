@@ -288,12 +288,9 @@ Camera.prototype.DrawPickUps = function(player) {
 
 		this.pickUpPool[i].sprite.height =  this.pickUpScale / distance;
 		this.pickUpPool[i].sprite.width =  this.pickUpScale / distance;
-		// THIS IS NOT RIGHT
-		this.pickUpPool[i].sprite.x = ((this.sceneWidth / 2) 
-			+ ((this.sceneWidth / 2) 
-				* (((angle + 360) % 360) - ((player.direction + 360) % 360))
-				/(player.POV * .5)) 
-			- this.pickUpPool[i].sprite.width/2);
+	
+		this.pickUpPool[i].sprite.x = (this.sceneWidth / 2) 
+			- ((this.sceneWidth / 2) * (angleDifference/(player.POV * .5))) - this.pickUpPool[i].sprite.width/2;
 		this.pickUpPool[i].sprite.y = (this.sceneHeight * .5) - (this.pickUpPool[i].sprite.height/2);
 	}
 };
