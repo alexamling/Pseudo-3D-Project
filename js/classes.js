@@ -261,12 +261,12 @@ Camera.prototype.DrawPickUps = function(player) {
 	for (let i = 0; i < this.pickUpPool.length; i++){
 		// culling the pickups that are out of the player's view
 		let angle = Math.atan2(this.pickUpPool[i].y - player.position.y, this.pickUpPool[i].x - player.position.x) * 180/PI
-		if (angle > player.direction + (player.POV * .5)){
-			this.pickUpPool[i].sprite.x = -1000; // move the shape off screen
-		debugger;
-			continue;
-		}
-		if (angle + (player.POV * .5) < player.direction){
+		
+		// Sourced from: https://stackoverflow.com/questions/12234574/calculating-if-an-angle-is-between-two-angles
+		// I spent the longest time trying to get this to work
+		let angleDifference = (player.direction - angle + 540) % 360 - 180;
+
+		if (!(angleDifference <= (player.POV * .5) && angleDifference >= (player.POV * -.5))) {
 			this.pickUpPool[i].sprite.x = -1000; // move the shape off screen
 		debugger;
 			continue;
@@ -284,10 +284,16 @@ Camera.prototype.DrawPickUps = function(player) {
 
 		// change z-order depending on distance
 		this.pickUpPool[i].zOrder = distance;
+		debugger;
 
 		this.pickUpPool[i].sprite.height =  this.pickUpScale / distance;
 		this.pickUpPool[i].sprite.width =  this.pickUpScale / distance;
-		this.pickUpPool[i].sprite.x = ((this.sceneWidth / 2) + ((this.sceneWidth / 2) * (angle - player.direction)/(player.POV * .5)) - this.pickUpPool[i].sprite.width/2);
+		// THIS IS NOT RIGHT
+		this.pickUpPool[i].sprite.x = ((this.sceneWidth / 2) 
+			+ ((this.sceneWidth / 2) 
+				* (((angle + 360) % 360) - ((player.direction + 360) % 360))
+				/(player.POV * .5)) 
+			- this.pickUpPool[i].sprite.width/2);
 		this.pickUpPool[i].sprite.y = (this.sceneHeight * .5) - (this.pickUpPool[i].sprite.height/2);
 	}
 };
