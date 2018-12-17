@@ -8,14 +8,14 @@ end screen
 
 
 "use strict";
-const app = new PIXI.Application(480,320);
+const app = new PIXI.Application(960,640);
 app.stage = new PIXI.display.Stage();
 app.stage.group.enableSort = true;
 document.body.appendChild(app.view);
 
 const sceneWidth = app.view.width;
 const sceneHeight = app.view.height;
-const resolution = 240;
+const resolution = 480;
 
 // scene variables
 let startScene;
@@ -31,6 +31,7 @@ let playing = true;
 
 // test variables
 let circle;
+let circle2;
 
 Setup();
 
@@ -86,7 +87,16 @@ function Setup(){
 	circle.endFill();
 	circle.zOrder = 1;
 	circle.parentGroup = gameGroup;
-	gameScene.addChild(circle);*/
+	gameScene.addChild(circle);
+	
+	circle2 = new PIXI.Graphics();
+	circle2.beginFill(0x0000ff);
+	circle2.drawCircle(sceneWidth/2,sceneHeight/2,20);
+	circle2.endFill();
+	circle2.zOrder = .5;
+	circle2.parentGroup = gameGroup;
+	gameScene.addChild(circle2);
+	*/
 }
 
 function GameLoop(){

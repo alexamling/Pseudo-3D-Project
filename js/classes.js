@@ -179,7 +179,7 @@ class Camera{
 		this.sceneWidth = sceneWidth;
 		this.sceneHeight = sceneHeight;
 		this.wallScale = 250;
-		this.pickUpScale = 75;
+		this.pickUpScale = 150;
 		this.shadowDistance = 15;
 		this.walls = this.GetWalls(sceneWidth, resolution);
 		this.pickUpPool = this.GetPickUps();
@@ -252,7 +252,7 @@ Camera.prototype.DrawWalls = function(player) {
 		this.walls[i].tint = ToHex(value);
 		// change z-order depending on distance
 		this.walls[i].zOrder = distance;
-		this.walls[i].height =  this.wallScale / distance;
+		this.walls[i].height =  (this.sceneHeight * .9) / distance;
 		this.walls[i].y = (this.sceneHeight * .5) - (this.walls[i].height/2);
 	}
 };
@@ -266,7 +266,7 @@ Camera.prototype.DrawPickUps = function(player) {
 		// I spent the longest time trying to get this to work
 		let angleDifference = (player.direction - angle + 540) % 360 - 180;
 
-		if (!(angleDifference <= (player.POV * .5) && angleDifference >= (player.POV * -.5))) {
+		if (!(angleDifference <= (player.POV * .5) + 5 && angleDifference >= (player.POV * -.5) - 5)) {
 			this.pickUpPool[i].sprite.x = -1000; // move the shape off screen
 		debugger;
 			continue;
@@ -279,11 +279,11 @@ Camera.prototype.DrawPickUps = function(player) {
 		distance *= Math.cos((player.direction - angle) * (PI/180));
 
 		// change image tint depending on distance
-		let value = 200 - ((distance * this.shadowDistance)*.5);
-		//this.pickUpPool[i].sprite.tint = ToHex(value);
+		let value = 200 - ((distance * this.shadowDistance));
+		this.pickUpPool[i].sprite.tint = ToHex(value);
 
 		// change z-order depending on distance
-		this.pickUpPool[i].zOrder = distance;
+		this.pickUpPool[i].sprite.zOrder = distance;
 		debugger;
 
 		this.pickUpPool[i].sprite.height =  this.pickUpScale / distance;
@@ -447,9 +447,9 @@ Map.prototype.Inspect = function(ray) {
 // # 6 - Pickup Class ----------------------------------------------------------------------------------------------
 class PickUp{
 	constructor(x,y, scene, group){
-		this.x = x;
-		this.y = y;
-		this.sprite = new PIXI.Sprite.fromImage('images/pickup.png');
+		this.x = x + .5;
+		this.y = y + .5;
+		this.sprite = new PIXI.Sprite.fromImage('images/ruby.png');
 		/*this.sprite = new PIXI.Graphics();
 		this.sprite.beginFill(0x0000ff);
 		this.sprite.drawRect(sceneWidth/2,sceneHeight/2,10,10);
