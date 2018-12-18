@@ -1,5 +1,8 @@
-// Code based off of project written by Hunter Loftis: http://www.playfuljs.com/a-first-person-engine-in-265-lines/
-// and project written by Jacob Seidelin: https://dev.opera.com/articles/3d-games-with-canvas-and-raycasting-part-1/
+/*
+Written by Alexander Amling
+Code based off of concepts from a similar project written by Hunter Loftis: http://www.playfuljs.com/a-first-person-engine-in-265-lines/
+and project written by Jacob Seidelin: https://dev.opera.com/articles/3d-games-with-canvas-and-raycasting-part-1/
+*/
 
 "use strict";
 
@@ -80,7 +83,7 @@ ________________________________________________________________________________
 		
 
 --- # 7 - Enemy Class  --------------------------------------------------------------------------------------------
-		
+		Constructor(x position, y position, scene, sprite group)
 
 
 
@@ -202,6 +205,7 @@ class Camera{
 		this.walls = this.GetWalls(sceneWidth, resolution);
 		this.pickUpPool = this.GetPickUps();
 		this.enemy = enemy;
+		this.DrawBackground();
 	}
 }
 
@@ -229,6 +233,7 @@ Camera.prototype.GetPickUps = function() {
 Camera.prototype.Update = function(player) {
 	// draw background
 	// draw walls
+	//this.background.zOrder = 1000;
 	this.DrawWalls(player);
 	this.DrawPickUps(player);
 	this.DrawEnemy(player);
@@ -236,7 +241,17 @@ Camera.prototype.Update = function(player) {
 
 // method to handle drawing the background (floor and/or sky)
 Camera.prototype.DrawBackground = function() {
-	// static background image
+		let backgroundSprite = new PIXI.Sprite.fromImage('images/ground.png');
+		backgroundSprite.anchor.x = 0.5;
+		backgroundSprite.anchor.y = 0.5;
+		backgroundSprite.width = 960;
+		backgroundSprite.height = 640;
+		backgroundSprite.x = sceneWidth/2;
+		backgroundSprite.y = sceneHeight;
+		backgroundSprite.zOrder = 1000;
+		backgroundSprite.parentGroup = this.group;
+		this.background = backgroundSprite;
+		this.scene.addChild(backgroundSprite);
 };
 
 // method to handle the drawing of the walls

@@ -1,6 +1,7 @@
 // code from class-provided example
 // important keycodes
 const keyboard = Object.freeze({
+	ENTER: 13,
 	SHIFT: 16,
 	SPACE: 32,
 	LEFT:  37,

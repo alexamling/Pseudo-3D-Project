@@ -1,12 +1,6 @@
-
-/* TODO:
-map loading
-draw floor/background
-start screen
-end screen
+/*
+Written by Alexander Amling
 */
-
-
 "use strict";
 const app = new PIXI.Application(960,640);
 app.stage = new PIXI.display.Stage();
@@ -37,7 +31,7 @@ let enemy;
 let map;
 let cam;
 
-let playing = true;
+let playing;
 
 // test variables
 let circle;
@@ -70,7 +64,7 @@ function Setup(){
 
 
 	// #4 - Labels for the scenes
-
+	LoadLabels();
 
 	// #5 - Load Audio
 	// load in audio files
@@ -81,31 +75,12 @@ function Setup(){
 	startMusicController = startSceneMusic.play();
 	gameMusicController = gameSceneMusic.play();
 
-	// fade in the desired background music
-	gameSceneMusic.fade(0,1,1000, gameMusicController);
-
 	timeSinceEnemySound = 0;
 	enemySounds.push(new Howl({src: ['sounds/fantasy-sound-library/Dragon_Growl_00.wav'], volume: 0.5}));
 	enemySounds.push(new Howl({src: ['sounds/fantasy-sound-library/Dragon_Growl_01.wav'], volume: 0.5}));
 
 
-
-	//ambientSounds.push(new Howl({src: ['sounds/horror-sound-library/Ambience_MurderOfCrows_00.wav']}));
-
-	// #6 - Create Player
-	player = new Player(0,0,135,80);
-	player.position = new Vector2(5,5);
-
-
-	enemy = new Enemy(1, 1, gameScene, gameGroup);
-
-	// #7 - Create Map
-	map = new Map(10);
-
-
-	// #8 - Create Camera
-	cam = new Camera(map, enemy, gameScene, gameGroup, sceneWidth, sceneHeight, resolution);
-
+	Menu();
 
 	// #9 - Start Game Loop
 	app.ticker.add(GameLoop);
@@ -131,9 +106,132 @@ function Setup(){
 	*/
 }
 
-function GameLoop(){
-	if (!playing) return;
+function LoadLabels(){
+	let title = new PIXI.Text("Torment");
+	title.style = new PIXI.TextStyle({
+    	fill: "#aaaaaa",
+    	fontFamily: "Impact",
+    	fontSize: 96,
+    	fontVariant: "small-caps"
+	});
+	title.anchor.x = 0.5;
+	title.anchor.y = 0.5;
+	title.x = sceneWidth/2;
+	title.y = 200;
+	startScene.addChild(title);
 
+	let controls = new PIXI.Text("move: WASD\nlook: 🡠 🡢");
+	controls.style = new PIXI.TextStyle({
+    	fill: "#555555",
+    	fontFamily: "Impact",
+    	fontSize: 24,
+    	fontVariant: "small-caps"
+	});
+	controls.anchor.x = 0.5;
+	controls.anchor.y = 0.5;
+	controls.x = sceneWidth/2;
+	controls.y = 350;
+	startScene.addChild(controls);
+
+	let instructions = new PIXI.Text("you have one goal: find the four keys before he finds you.");
+	instructions.style = new PIXI.TextStyle({
+    	fill: "#555555",
+    	fontFamily: "Impact",
+    	fontSize: 36,
+    	fontVariant: "small-caps"
+	});
+	instructions.anchor.x = 0.5;
+	instructions.anchor.y = 0.5;
+	instructions.x = sceneWidth/2;
+	instructions.y = 450;
+	startScene.addChild(instructions);
+
+	let startLabel = new PIXI.Text("press enter to start");
+	startLabel.style = new PIXI.TextStyle({
+    	fill: "#555555",
+    	fontFamily: "Impact",
+    	fontSize: 24,
+    	fontVariant: "small-caps"
+	});
+	startLabel.anchor.x = 0.5;
+	startLabel.anchor.y = 0.5;
+	startLabel.x = sceneWidth/2;
+	startLabel.y = 600;
+	startScene.addChild(startLabel);
+
+	let pickupCounter = new PIXI.Text("4 keys left");
+	pickupCounter.style = new PIXI.TextStyle({
+    	fill: "#555555",
+    	fontFamily: "Impact",
+    	fontSize: 24,
+    	fontVariant: "small-caps"
+	});
+	pickupCounter.anchor.x = 0.5;
+	pickupCounter.anchor.y = 0.5;
+	pickupCounter.x = sceneWidth/2;
+	pickupCounter.y = 600;
+	gameScene.addChild(pickupCounter);
+}
+
+function Menu(){
+	// #1 - set scene
+	playing = false;
+	startScene.visible = true;
+	gameScene.visible = false;
+	gameOverScene.visible = false;
+
+
+	// #2 - music
+	startSceneMusic.fade(0,1,1000, startMusicController); // fade in menu music
+	gameSceneMusic.fade(1,0,1000, gameMusicController); // fade out game music (this is for restarting)
+}
+
+function GameOver(win){
+	// #1 - set scene
+	playing = false;
+	startScene.visible = false;
+	gameScene.visible = false;
+	gameOverScene.visible = true;
+
+}
+
+function StartGame(){
+	// #1 - set scene
+	playing = true;
+	startScene.visible = false;
+	gameScene.visible = true;
+	gameOverScene.visible = false;
+
+
+	// #2 - music
+	gameSceneMusic.fade(0,1,1000, gameMusicController); // fade in the game background music
+	timeSinceEnemySound = 0;
+
+
+	// #3 - Create Player
+	player = new Player(0,0,135,80);
+	player.position = new Vector2(5,5);
+
+
+	// #4 - Create Enemy
+	enemy = new Enemy(1, 1, gameScene, gameGroup);
+
+
+	// #5 - Create Map
+	map = new Map(10);
+
+
+	// #6 - Create Camera
+	cam = new Camera(map, enemy, gameScene, gameGroup, sceneWidth, sceneHeight, resolution);
+}
+
+function GameLoop(){
+	if (!playing) {
+		if (keys[keyboard.ENTER]){
+			StartGame();
+		}
+		return;
+	}
 	// #1 - input
 
 
