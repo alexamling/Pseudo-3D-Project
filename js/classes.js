@@ -79,7 +79,12 @@ ________________________________________________________________________________
 		
 		
 
---- # 7 - Helper Functions -----------------------------------------------------------------------------------------
+--- # 7 - Enemy Class  --------------------------------------------------------------------------------------------
+		
+
+
+
+--- # 8 - Helper Functions -----------------------------------------------------------------------------------------
 		
 		ToHex(value to convert to hex) : created with reference to https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb
 			creates a hexidecimal string to use as a color value for tinting
@@ -202,13 +207,6 @@ Camera.prototype.GetWalls = function() {
 Camera.prototype.GetPickUps = function() {
 	let pickUpPool = [map.pickUps.length];
 	for (let i = 0; i < map.pickUps.length; i++){
-		/*pickUpPool[i] = new PIXI.Sprite.fromImage();
-		pickUpPool[i] = new PIXI.Graphics();
-		pickUpPool[i].beginFill(0xff0000);
-		pickUpPool[i].drawCircle(sceneWidth/2,sceneHeight/2,10);
-		pickUpPool[i].endFill();
-		this.scene.addChild(pickUpPool[i]);
-		pickUpPool[i].parentGroup = this.group;*/
 		pickUpPool[i] = new PickUp(map.pickUps[i].x, map.pickUps[i].y, this.scene, this.group);
 	}
 	return pickUpPool;
@@ -447,10 +445,6 @@ class PickUp{
 		this.x = x + .5;
 		this.y = y + .5;
 		this.sprite = new PIXI.Sprite.fromImage('images/ruby.png');
-		/*this.sprite = new PIXI.Graphics();
-		this.sprite.beginFill(0x0000ff);
-		this.sprite.drawRect(sceneWidth/2,sceneHeight/2,10,10);
-		this.sprite.endFill();*/
 		this.sprite.x = sceneWidth/2;
 		this.sprite.y = sceneHeight/2;
 		this.sprite.width = 10;
@@ -464,7 +458,29 @@ class PickUp{
 
 
 
-// # 7 - Helper Functions ------------------------------------------------------------------------------------------
+// # 7 - Enemy Class ----------------------------------------------------------------------------------------------
+class Enemy{
+	constructor(x,y, scene, group){
+		this.x = x + .5;
+		this.y = y + .5;
+		this.sprite = new PIXI.Sprite.fromImage('images/ghost.png');
+		this.sprite.x = sceneWidth/2;
+		this.sprite.y = sceneHeight/2;
+		this.sprite.width = 10;
+		this.sprite.height = 10;
+		scene.addChild(this.sprite);
+		this.sprite.parentGroup = group;
+	}
+}
+
+Enemy.prototype.Update = function(first_argument) {
+	// body...
+};
+// End of Pickup class --------------------------------------------------------------------------------------------
+
+
+
+// # 8 - Helper Functions ------------------------------------------------------------------------------------------
 
 /* referred to: https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb */
 function ToHex(value){
