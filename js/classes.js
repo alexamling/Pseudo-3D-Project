@@ -76,7 +76,7 @@ ________________________________________________________________________________
 			returns false otherwise
 
 --- # 6 - Pickup Class  -------------------------------------------------------------------------------------------
-		
+		Constructor(x position, y position, scene, sprite group)
 		
 
 --- # 7 - Enemy Class  --------------------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ Player.prototype.Move = function(map, camera) {
 // parameters: (the map for the level, the scene for gameplay, the group for laying objects, 
 //		the width of the scene, the height of the scene, the desired rendering resolution)
 class Camera{
-	constructor(map, scene, group, sceneWidth, sceneHeight, resolution){
+	constructor(map, enemy, scene, group, sceneWidth, sceneHeight, resolution){
 		this.map = map;
 		this.scene = scene;
 		this.group = group;
@@ -198,9 +198,10 @@ class Camera{
 		this.sceneHeight = sceneHeight;
 		this.wallScale = 250;
 		this.pickUpScale = 150;
-		this.shadowDistance = 15;
+		this.shadowDistance = 20;
 		this.walls = this.GetWalls(sceneWidth, resolution);
 		this.pickUpPool = this.GetPickUps();
+		this.enemy = enemy;
 	}
 }
 
@@ -230,6 +231,7 @@ Camera.prototype.Update = function(player) {
 	// draw walls
 	this.DrawWalls(player);
 	this.DrawPickUps(player);
+	this.DrawEnemy(player);
 };
 
 // method to handle drawing the background (floor and/or sky)
@@ -304,6 +306,40 @@ Camera.prototype.DrawPickUps = function(player) {
 		this.pickUpPool[i].sprite.y = (this.sceneHeight * .5) - (this.pickUpPool[i].sprite.height/2);
 	}
 };
+
+Camera.prototype.DrawEnemy = function(player) {
+	// culling the pickups that are out of the player's view
+	let angle = Math.atan2(this.enemy.y - player.position.y, this.enemy.x - player.position.x) * 180/PI
+		
+	// Sourced from: https://stackoverflow.com/questions/12234574/calculating-if-an-angle-is-between-two-angles
+	// I spent the longest time trying to get this to work
+	let angleDifference = (player.direction - angle + 540) % 360 - 180;
+
+	if (!(angleDifference <= (player.POV * .5) + 5 && angleDifference >= (player.POV * -.5) - 5)) {
+		this.enemy.sprite.x = -1000; // move the shape off screen
+		return;
+	}
+
+		// calculate distance from player
+	let distance = (this.enemy.x - player.position.x) * (this.enemy.x - player.position.x);
+	distance += (this.enemy.y - player.position.y) * (this.enemy.y - player.position.y);
+	distance = Math.sqrt(distance);
+	this.enemy.distFromPlayer = distance; // variable to use for scaling enemy sound
+	distance *= Math.cos((player.direction - angle) * (PI/180));
+
+	// change image tint depending on distance
+	let value = 175 - ((distance * this.shadowDistance));
+	this.enemy.sprite.tint = ToHex(value);
+
+	// change z-order depending on distance
+	this.enemy.sprite.zOrder = distance;
+
+	this.enemy.sprite.height =  400 / distance;
+	this.enemy.sprite.width =  400 / distance;
+	
+	this.enemy.sprite.x = (this.sceneWidth / 2) 
+		- ((this.sceneWidth / 2) * (angleDifference/(player.POV * .5))) - this.enemy.sprite.width/2;
+	this.enemy.sprite.y = (this.sceneHeight * .5) - (this.enemy.sprite.height/2);};
 
 // End of Camera Class ---------------------------------------------------------------------------------------------
 
@@ -478,8 +514,10 @@ class Enemy{
 		this.sprite.y = sceneHeight/2;
 		this.sprite.width = 10;
 		this.sprite.height = 10;
+		this.sprite.alpha = .8;
 		scene.addChild(this.sprite);
 		this.sprite.parentGroup = group;
+		this.distFromPlayer = 1;
 	}
 }
 

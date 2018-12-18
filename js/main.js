@@ -33,6 +33,7 @@ let timeSinceEnemySound;
 let ambientSounds = [];
 
 let player;
+let enemy;
 let map;
 let cam;
 
@@ -96,12 +97,14 @@ function Setup(){
 	player.position = new Vector2(5,5);
 
 
+	enemy = new Enemy(1, 1, gameScene, gameGroup);
+
 	// #7 - Create Map
 	map = new Map(10);
 
 
 	// #8 - Create Camera
-	cam = new Camera(map, gameScene, gameGroup, sceneWidth, sceneHeight, resolution);
+	cam = new Camera(map, enemy, gameScene, gameGroup, sceneWidth, sceneHeight, resolution);
 
 
 	// #9 - Start Game Loop
@@ -150,7 +153,9 @@ function GameLoop(){
 
 	// chance to play an enemy sound
 	if (Math.random() * 100 < timeSinceEnemySound){
-		enemySounds[Math.floor(Math.random() * enemySounds.length)].play();
+		let sound = enemySounds[Math.floor(Math.random() * enemySounds.length)]
+		sound.volume(1/enemy.distFromPlayer);
+		sound.play();
 		timeSinceEnemySound = -10;
 	}
 	timeSinceEnemySound += .01; // I know it's not the number of seconds, it's juat an easy way to weight a delay
