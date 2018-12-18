@@ -135,7 +135,7 @@ function GameLoop(){
 
 
 	// #2 - update player
-	player.Update(map);
+	player.Update(map, cam);
 
 
 	// update camera

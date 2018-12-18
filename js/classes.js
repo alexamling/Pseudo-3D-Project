@@ -109,9 +109,9 @@ class Player{
 }
 
 // method to pass the appropirate values to Rotate() and Move() based off of input values
-Player.prototype.Update = function(map) {
+Player.prototype.Update = function(map, camera) {
 	this.Rotate();
-	this.Move(map);
+	this.Move(map, camera);
 };
 
 // method to adjust the players direction based off of values passed from Update()
@@ -131,7 +131,7 @@ Player.prototype.Rotate = function() {
 };
 
 // method to adjust palyer location based off of values passed from Update()
-Player.prototype.Move = function(map) {
+Player.prototype.Move = function(map, camera) {
 	let dx = 0;
 	let dy = 0;
 	// forward/backward
@@ -164,6 +164,19 @@ Player.prototype.Move = function(map) {
 	// apply movement
 	this.position.x += dx;
 	this.position.y += dy;
+
+	// check for pickup
+	// REDO THIS WITH A FOR LOOP
+	if (map.wallGrid[Math.floor(this.position.x)][Math.floor(this.position.y)] < 0){
+		map.wallGrid[Math.floor(this.position.x)][Math.floor(this.position.y)] = 0;
+		for (let i = 0; i < camera.pickUpPool.length; i++){
+			if (camera.pickUpPool[i].x == Math.floor(this.position.x) + .5 && camera.pickUpPool[i].y == Math.floor(this.position.y) + .5){
+				camera.pickUpPool[i].sprite.x = -1000;
+				camera.pickUpPool.splice(i);
+				i = camera.pickUpPool.length;
+			}
+		}
+	}
 };
 
 // End of Player Class ---------------------------------------------------------------------------------------------
@@ -228,6 +241,7 @@ Camera.prototype.DrawBackground = function() {
 Camera.prototype.DrawWalls = function(player) {
 	// divide player FOV (default 90?) into desired resolution
 	// for each division
+	debugger;
 	for (let i = 0; i < this.resolution; i++){
 		let angle = player.direction - (player.POV / 2);
 		angle = angle + ((i/this.resolution) * player.POV);
@@ -246,7 +260,7 @@ Camera.prototype.DrawWalls = function(player) {
 		distance = Math.sqrt(distance);
 		distance *= Math.cos((player.direction - ray.angle) * (PI/180));
 		// change image tint depending on distance
-		let value = 200 - (distance * this.shadowDistance);
+		let value = 175 - (distance * this.shadowDistance);
 		this.walls[i].tint = ToHex(value);
 		// change z-order depending on distance
 		this.walls[i].zOrder = distance;
@@ -266,7 +280,6 @@ Camera.prototype.DrawPickUps = function(player) {
 
 		if (!(angleDifference <= (player.POV * .5) + 5 && angleDifference >= (player.POV * -.5) - 5)) {
 			this.pickUpPool[i].sprite.x = -1000; // move the shape off screen
-		debugger;
 			continue;
 		}
 
@@ -277,12 +290,11 @@ Camera.prototype.DrawPickUps = function(player) {
 		distance *= Math.cos((player.direction - angle) * (PI/180));
 
 		// change image tint depending on distance
-		let value = 200 - ((distance * this.shadowDistance));
+		let value = 175 - ((distance * this.shadowDistance));
 		this.pickUpPool[i].sprite.tint = ToHex(value);
 
 		// change z-order depending on distance
 		this.pickUpPool[i].sprite.zOrder = distance;
-		debugger;
 
 		this.pickUpPool[i].sprite.height =  this.pickUpScale / distance;
 		this.pickUpPool[i].sprite.width =  this.pickUpScale / distance;
@@ -349,7 +361,6 @@ Map.prototype.Setup = function() {
 			if(x == 0 || x == this.size-1 || y == 0 || y == this.size-1 || Math.random() < .05){
 				row.push(1);
 			}else if (Math.random() < .05){
-				debugger;
 				row.push(-1); // mark this spot on the grid
 				this.pickUps.push(new Vector2(x,y)); // pass the location to the pickup arr
 			}else{
@@ -416,7 +427,6 @@ Map.prototype.Inspect = function(ray) {
 	// exit loop if ray has left the bounds of the scene
 	if (point.x > this.size + 1 || point.y > this.size + 1 || point.x < 0 || point.y < 0){
 		console.log("Defaulted");
-		debugger;
 		return true;
 	}
 
