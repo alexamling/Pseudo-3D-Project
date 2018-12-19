@@ -33,11 +33,24 @@ let cam;
 
 let playing;
 
+// labels
+let title;
+let startLabel;
+let controls;
+let instructions;
+let pickupCounter;
+let gameOverText;
+let playAgainLabel;
+
 // test variables
 let circle;
 let circle2;
 
-Setup();
+// pre-load the images
+PIXI.loader.
+add(["images/ground.png","images/ghost.png","images/wall_tile.png","images/ruby.png"]).
+on("progress",e=>{console.log(`progress=${e.progress}`)}).
+load(Setup);
 
 // I felt the need to make this a method in the case where the player restarts the game, 
 // but that might also require a bit more modification (TODO: allow for restarting)
@@ -107,7 +120,7 @@ function Setup(){
 }
 
 function LoadLabels(){
-	let title = new PIXI.Text("Torment");
+	title = new PIXI.Text("Torment");
 	title.style = new PIXI.TextStyle({
     	fill: "#aaaaaa",
     	fontFamily: "Impact",
@@ -120,7 +133,7 @@ function LoadLabels(){
 	title.y = 200;
 	startScene.addChild(title);
 
-	let controls = new PIXI.Text("move: WASD\nlook: 🡠 🡢");
+	controls = new PIXI.Text("move: WASD\nlook: 🡠 🡢");
 	controls.style = new PIXI.TextStyle({
     	fill: "#555555",
     	fontFamily: "Impact",
@@ -133,7 +146,7 @@ function LoadLabels(){
 	controls.y = 350;
 	startScene.addChild(controls);
 
-	let instructions = new PIXI.Text("you have one goal: find the four keys before he finds you.");
+	instructions = new PIXI.Text("you have one goal: find the four keys before he finds you.");
 	instructions.style = new PIXI.TextStyle({
     	fill: "#555555",
     	fontFamily: "Impact",
@@ -146,7 +159,7 @@ function LoadLabels(){
 	instructions.y = 450;
 	startScene.addChild(instructions);
 
-	let startLabel = new PIXI.Text("press enter to start");
+	startLabel = new PIXI.Text("press enter to start");
 	startLabel.style = new PIXI.TextStyle({
     	fill: "#555555",
     	fontFamily: "Impact",
@@ -159,7 +172,7 @@ function LoadLabels(){
 	startLabel.y = 600;
 	startScene.addChild(startLabel);
 
-	let pickupCounter = new PIXI.Text("4 keys left");
+	pickupCounter = new PIXI.Text("4 keys left");
 	pickupCounter.style = new PIXI.TextStyle({
     	fill: "#555555",
     	fontFamily: "Impact",
@@ -170,7 +183,33 @@ function LoadLabels(){
 	pickupCounter.anchor.y = 0.5;
 	pickupCounter.x = sceneWidth/2;
 	pickupCounter.y = 600;
-	gameScene.addChild(pickupCounter);
+
+
+	gameOverText = new PIXI.Text("");
+	gameOverText.style = new PIXI.TextStyle({
+    	fill: "#aaaaaa",
+    	fontFamily: "Impact",
+    	fontSize: 96,
+    	fontVariant: "small-caps"
+	});
+	gameOverText.anchor.x = 0.5;
+	gameOverText.anchor.y = 0.5;
+	gameOverText.x = sceneWidth/2;
+	gameOverText.y = 200;
+	gameOverScene.addChild(gameOverText);
+
+	playAgainLabel = new PIXI.Text("press enter to play again");
+	playAgainLabel.style = new PIXI.TextStyle({
+    	fill: "#555555",
+    	fontFamily: "Impact",
+    	fontSize: 24,
+    	fontVariant: "small-caps"
+	});
+	playAgainLabel.anchor.x = 0.5;
+	playAgainLabel.anchor.y = 0.5;
+	playAgainLabel.x = sceneWidth/2;
+	playAgainLabel.y = 600;
+	gameOverScene.addChild(playAgainLabel);
 }
 
 function Menu(){
@@ -193,6 +232,11 @@ function GameOver(win){
 	gameScene.visible = false;
 	gameOverScene.visible = true;
 
+	if(win){
+		gameOverText.text = "you win!";
+	}else{
+		gameOverText.text = "game over";
+	}
 }
 
 function StartGame(){
@@ -202,6 +246,13 @@ function StartGame(){
 	gameScene.visible = true;
 	gameOverScene.visible = false;
 
+	// make sure stage is empty
+	for (let i = gameScene.children.length -1; i >=0; i--){
+		gameScene.removeChild(gameScene.children[i]);
+	}
+	// add the counter label
+	gameScene.addChild(pickupCounter);
+	UpdateCounter(4); // set counter to default value;
 
 	// #2 - music
 	gameSceneMusic.fade(0,1,1000, gameMusicController); // fade in the game background music
@@ -245,6 +296,8 @@ function GameLoop(){
 
 	// update enemy
 
+
+
 	// update layering
 	app.stage.updateStage();
 
@@ -259,4 +312,11 @@ function GameLoop(){
 	timeSinceEnemySound += .01; // I know it's not the number of seconds, it's juat an easy way to weight a delay
 
 	// check if game has ended
+}
+
+function UpdateCounter(count){
+	pickupCounter.text = count + " keys left";
+	if(count == 0){
+		GameOver(true);
+	}
 }

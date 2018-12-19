@@ -177,6 +177,7 @@ Player.prototype.Move = function(map, camera) {
 				camera.pickUpPool[i].sprite.x = -1000;
 				camera.pickUpPool.splice(i);
 				i = camera.pickUpPool.length;
+				UpdateCounter(i);
 			}
 		}
 	}
