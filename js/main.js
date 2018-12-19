@@ -48,7 +48,7 @@ let circle2;
 
 // pre-load the images
 PIXI.loader.
-add(["images/ground.png","images/ghost.png","images/wall_tile.png","images/ruby.png"]).
+add(["images/ground.png","images/ghost.png","images/wall_tile.png","images/key_1.png","images/key_2.png","images/key_3.png","images/key_4.png"]).
 on("progress",e=>{console.log(`progress=${e.progress}`)}).
 load(Setup);
 
@@ -260,16 +260,16 @@ function StartGame(){
 
 
 	// #3 - Create Player
-	player = new Player(0,0,135,80);
-	player.position = new Vector2(5,5);
+	player = new Player(0,0,0,80);
+	player.position = new Vector2(12,12);
 
 
 	// #4 - Create Enemy
-	enemy = new Enemy(1, 1, gameScene, gameGroup);
-
+	enemy = new Enemy(1 + (Math.floor(Math.random() * 2) * 22), 1 + (Math.floor(Math.random() * 2) * 22), gameScene, gameGroup);
+	//console.log("Enemy placed at: " + enemy.x + ", " + enemy.y);
 
 	// #5 - Create Map
-	map = new Map(10);
+	map = new Map(25);
 
 
 	// #6 - Create Camera
@@ -277,32 +277,33 @@ function StartGame(){
 }
 
 function GameLoop(){
+	
+	// #1 - input
 	if (!playing) {
 		if (keys[keyboard.ENTER]){
 			StartGame();
 		}
 		return;
 	}
-	// #1 - input
 
 
 	// #2 - update player
 	player.Update(map, cam);
 
 
-	// update camera
+	// #3 - update camera
 	cam.Update(player);
 
 
-	// update enemy
+	// #4 - update enemy
+	enemy.Update(player);
 
 
-
-	// update layering
+	// #5 - update layering
 	app.stage.updateStage();
 
 
-	// chance to play an enemy sound
+	// #6 - chance to play an enemy sound
 	if (Math.random() * 100 < timeSinceEnemySound){
 		let sound = enemySounds[Math.floor(Math.random() * enemySounds.length)]
 		sound.volume(1/enemy.distFromPlayer);
@@ -311,7 +312,10 @@ function GameLoop(){
 	}
 	timeSinceEnemySound += .01; // I know it's not the number of seconds, it's juat an easy way to weight a delay
 
-	// check if game has ended
+	// # 7 - check if game has ended
+	if (enemy.distFromPlayer < 1){
+		GameOver(false);
+	}
 }
 
 function UpdateCounter(count){
@@ -319,4 +323,8 @@ function UpdateCounter(count){
 	if(count == 0){
 		GameOver(true);
 	}
+}
+
+function UpdateDeaths(){
+
 }

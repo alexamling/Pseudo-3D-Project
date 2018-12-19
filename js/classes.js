@@ -175,7 +175,7 @@ Player.prototype.Move = function(map, camera) {
 		for (let i = 0; i < camera.pickUpPool.length; i++){
 			if (camera.pickUpPool[i].x == Math.floor(this.position.x) + .5 && camera.pickUpPool[i].y == Math.floor(this.position.y) + .5){
 				camera.pickUpPool[i].sprite.x = -1000;
-				camera.pickUpPool.splice(i);
+				camera.pickUpPool.splice(i,1);
 				i = camera.pickUpPool.length;
 				UpdateCounter(i);
 			}
@@ -259,7 +259,7 @@ Camera.prototype.DrawBackground = function() {
 Camera.prototype.DrawWalls = function(player) {
 	// divide player FOV (default 90?) into desired resolution
 	// for each division
-	debugger;
+	//debugger;
 	for (let i = 0; i < this.resolution; i++){
 		let angle = player.direction - (player.POV / 2);
 		angle = angle + ((i/this.resolution) * player.POV);
@@ -406,21 +406,21 @@ class Map{
 
 Map.prototype.Setup = function() {
 	// set map
-	this.pickups = [
-	new Vector2(2,2),
-	new Vector2(17,2),
-	new Vector2(17,19),
-	new Vector2(21,18)];
+	this.pickUps = [
+	new Vector2(22,2),
+	new Vector2(22,17),
+	new Vector2(5,17),
+	new Vector2(6,21)];
 
 	this.wallGrid = [
 	[1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1],
-	[1, 0, 0, 0, 0,  0, 1, 0, 0, 0,  1, 0, 0, 0, 1,  0, 0, 0, 1, 0,  1, 0, 1, 0, 1],
+	[1, 0, 0, 0, 0,  0, 1, 0, 0, 0,  1, 0, 0, 0, 1,  0, 0, 0, 0, 0,  1, 0, 1, 0, 1],
 	[1, 0, 1, 0, 1,  0, 1, 0, 1, 0,  1, 0, 1, 0, 0,  0, 1, 0, 1, 0,  0, 0, 1, 0, 1],
 	[1, 0, 1, 0, 1,  0, 1, 0, 1, 0,  0, 0, 1, 0, 1,  0, 1, 0, 1, 0,  1, 1, 1, 0, 1],
 	[1, 0, 1, 0, 1,  0, 1, 0, 1, 0,  1, 0, 1, 0, 1,  0, 1, 0, 1, 0,  0, 0, 0, 0, 1],
 
-	[1, 0, 1, 0, 1,  0, 1, 0, 1, 0,  1, 0, 0, 0, 1,  0, 0, 0, 1, 0,  1, 1, 1, 1, 1],
-	[1, 0, 0, 0, 1,  0, 1, 0, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 0,  1, 0, 0, 0, 1],
+	[1, 0, 1, 0, 1,  0, 1, 0, 1, 0,  1, 0, 0, 0, 1,  0, 0,-1, 1, 0,  1, 1, 1, 1, 1],
+	[1, 0, 0, 0, 1,  0, 1, 0, 1, 1,  1, 1, 1, 0, 1,  1, 1, 1, 1, 0,  1,-1, 0, 0, 1],
 	[1, 0, 1, 1, 1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  1, 1, 1, 0, 1],
 	[1, 0, 0, 0, 1,  0, 0, 0, 0, 0,  1, 1, 0, 1, 1,  0, 0, 0, 1, 0,  0, 0, 0, 0, 1],
 	[1, 0, 1, 0, 1,  0, 1, 0, 0, 1,  0, 0, 0, 0, 0,  1, 0, 0, 1, 0,  1, 1, 1, 0, 1],
@@ -434,13 +434,13 @@ Map.prototype.Setup = function() {
 	[1, 0, 0, 0, 0,  0, 1, 0, 0, 1,  0, 0, 0, 0, 0,  1, 0, 0, 1, 0,  1, 1, 1, 0, 1],
 	[1, 0, 1, 1, 1,  0, 1, 0, 0, 0,  1, 1, 0, 1, 1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1],
 	[1, 0, 1, 0, 1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1],
-	[1, 0, 1, 0, 1,  0, 1, 1, 1, 1,  1, 0, 0, 0, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1],
+	[1, 0, 1, 0, 1,  0, 1, 1, 1, 1,  1, 0, 0, 0, 1,  1, 1, 1, 1, 1,  1, 1, 1, 0, 1],
 	[1, 0, 1, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1],
 
 	[1, 0, 1, 1, 1,  0, 1, 0, 1, 0,  1, 1, 1, 0, 1,  0, 1, 1, 1, 0,  1, 0, 1, 0, 1],
 	[1, 0, 0, 0, 1,  0, 1, 0, 1, 0,  0, 0, 1, 0, 1,  0, 0, 0, 1, 0,  1, 0, 0, 0, 1],
-	[1, 0, 0, 0, 1,  0, 1, 0, 1, 1,  1, 0, 1, 0, 1,  1, 1, 0, 1, 0,  1, 1, 1, 0, 1],
-	[1, 0, 0, 0, 1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1],
+	[1, 0,-1, 0, 1,  0, 1, 0, 1, 1,  1, 0, 1, 0, 1,  1, 1,-1, 1, 0,  1, 1, 1, 0, 1],
+	[1, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1],
 	[1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1],
 	]
 	/*
@@ -515,7 +515,6 @@ Map.prototype.Inspect = function(ray) {
 	let point = ray.points[ray.points.length - 1];
 	// exit loop if ray has left the bounds of the scene
 	if (point.x > this.size + 1 || point.y > this.size + 1 || point.x < 0 || point.y < 0){
-		console.log("Defaulted");
 		return true;
 	}
 
@@ -543,7 +542,7 @@ class PickUp{
 	constructor(x,y, scene, group){
 		this.x = x + .5;
 		this.y = y + .5;
-		this.sprite = new PIXI.Sprite.fromImage('images/ruby.png');
+		this.sprite = new PIXI.Sprite.fromImage('images/key_1.png');
 		this.sprite.x = sceneWidth/2;
 		this.sprite.y = sceneHeight/2;
 		this.sprite.width = 10;
@@ -562,20 +561,33 @@ class Enemy{
 	constructor(x,y, scene, group){
 		this.x = x + .5;
 		this.y = y + .5;
+		this.speed = .01;
 		this.sprite = new PIXI.Sprite.fromImage('images/ghost.png');
 		this.sprite.x = sceneWidth/2;
 		this.sprite.y = sceneHeight/2;
 		this.sprite.width = 10;
 		this.sprite.height = 10;
-		this.sprite.alpha = .8;
+		this.sprite.alpha = .75;
 		scene.addChild(this.sprite);
 		this.sprite.parentGroup = group;
 		this.distFromPlayer = 1;
 	}
 }
 
-Enemy.prototype.Update = function(first_argument) {
-	// body...
+Enemy.prototype.Update = function(player) {
+
+    if (Math.abs(player.position.x - this.x) < Math.abs(player.position.y - this.y)){  
+    	if (Math.abs(player.position.x - this.x) > .1)
+    		this.x += (player.position.x > this.x) ? this.speed : -1 * this.speed;
+    	else
+    		this.y += (player.position.y > this.y) ? this.speed : -1 * this.speed;
+    } else {
+    	if(Math.abs(player.position.y - this.y) > .1)
+    		this.y += (player.position.y > this.y) ? this.speed : -1 * this.speed;
+    	else{
+    		this.x += (player.position.x > this.x) ? this.speed : -1 * this.speed;
+    	}
+    }
 };
 // End of Pickup class --------------------------------------------------------------------------------------------
 
