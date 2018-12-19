@@ -26,11 +26,13 @@ let enemySounds = [];
 let timeSinceEnemySound;
 let ambientSounds = [];
 
+// object variables
 let player;
 let enemy;
 let map;
 let cam;
 
+// state bool
 let playing;
 
 // labels
@@ -40,6 +42,7 @@ let controls;
 let instructions;
 let pickupCounter;
 let gameOverText;
+let deathCountText
 let playAgainLabel;
 
 // test variables
@@ -52,8 +55,6 @@ add(["images/ground.png","images/ghost.png","images/wall_tile.png","images/key_1
 on("progress",e=>{console.log(`progress=${e.progress}`)}).
 load(Setup);
 
-// I felt the need to make this a method in the case where the player restarts the game, 
-// but that might also require a bit more modification (TODO: allow for restarting)
 function Setup(){
 
 	// #1 - Create the `start` scene
@@ -80,7 +81,6 @@ function Setup(){
 	LoadLabels();
 
 	// #5 - Load Audio
-	// load in audio files
 	startSceneMusic = new Howl({src: ['sounds/forest.ogg'], loop: true, volume: 0});
 	gameSceneMusic = new Howl({src: ['sounds/MyVeryOwnDeadShip.ogg'], loop: true, volume: 0});
 
@@ -92,31 +92,12 @@ function Setup(){
 	enemySounds.push(new Howl({src: ['sounds/fantasy-sound-library/Dragon_Growl_00.wav'], volume: 0.5}));
 	enemySounds.push(new Howl({src: ['sounds/fantasy-sound-library/Dragon_Growl_01.wav'], volume: 0.5}));
 
-
+	// #6 - go to menu scene
 	Menu();
 
-	// #9 - Start Game Loop
+	// #7 - Start Game Loop
 	app.ticker.add(GameLoop);
 
-
-	// #00 - testing section
-	/*
-	circle = new PIXI.Graphics();
-	circle.beginFill(0xff0000);
-	circle.drawCircle(sceneWidth/2,sceneHeight/2,30);
-	circle.endFill();
-	circle.zOrder = 1;
-	circle.parentGroup = gameGroup;
-	gameScene.addChild(circle);
-	
-	circle2 = new PIXI.Graphics();
-	circle2.beginFill(0x0000ff);
-	circle2.drawCircle(sceneWidth/2,sceneHeight/2,20);
-	circle2.endFill();
-	circle2.zOrder = .5;
-	circle2.parentGroup = gameGroup;
-	gameScene.addChild(circle2);
-	*/
 }
 
 function LoadLabels(){
@@ -197,6 +178,19 @@ function LoadLabels(){
 	gameOverText.x = sceneWidth/2;
 	gameOverText.y = 200;
 	gameOverScene.addChild(gameOverText);
+
+	deathCountText = new PIXI.Text("");
+	deathCountText.style = new PIXI.TextStyle({
+    	fill: "#555555",
+    	fontFamily: "Impact",
+    	fontSize: 48,
+    	fontVariant: "small-caps"
+	});
+	deathCountText.anchor.x = 0.5;
+	deathCountText.anchor.y = 0.5;
+	deathCountText.x = sceneWidth/2;
+	deathCountText.y = 350;
+	gameOverScene.addChild(deathCountText);
 
 	playAgainLabel = new PIXI.Text("press enter to play again");
 	playAgainLabel.style = new PIXI.TextStyle({
@@ -314,6 +308,7 @@ function GameLoop(){
 
 	// # 7 - check if game has ended
 	if (enemy.distFromPlayer < 1){
+		UpdateDeaths();
 		GameOver(false);
 	}
 }
@@ -326,5 +321,14 @@ function UpdateCounter(count){
 }
 
 function UpdateDeaths(){
+	let numDeaths = 1;
+	const stored = localStorage.getItem("aja7073-game-deaths");
 
+	if (stored){
+		numDeaths = Number(stored) + 1;
+	}
+
+	localStorage.setItem("aja7073-game-deaths", numDeaths);
+
+	deathCountText.text = "you have died: " + numDeaths + " times";
 }

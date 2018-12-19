@@ -561,7 +561,7 @@ class Enemy{
 	constructor(x,y, scene, group){
 		this.x = x + .5;
 		this.y = y + .5;
-		this.speed = .01;
+		this.speed = .015;
 		this.sprite = new PIXI.Sprite.fromImage('images/ghost.png');
 		this.sprite.x = sceneWidth/2;
 		this.sprite.y = sceneHeight/2;
